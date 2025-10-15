@@ -129,13 +129,13 @@ proxy_on() {
   export HTTP_PROXY="$http_proxy"
   export HTTPS_PROXY="$https_proxy"
   export NO_PROXY="$no_proxy"
-  [ "$is_quiet" != "true" ] && echo -e "[0;32m[√] 代理已开启 -> $http_proxy[0m"
+  [ "$is_quiet" != "true" ] && echo -e "\033[0;32m[√] 代理已开启 -> $http_proxy\033[0m"
 }
 
 proxy_off() {
   local is_quiet="${1:-false}"
   unset http_proxy https_proxy no_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY
-  [ "$is_quiet" != "true" ] && echo -e "[0;31m[×] 代理已关闭[0m"
+  [ "$is_quiet" != "true" ] && echo -e "\033[0;31m[×] 代理已关闭\033[0m"
 }
 
 # 只要端口在监听就自动开代理，否则自动关
