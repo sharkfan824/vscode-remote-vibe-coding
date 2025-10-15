@@ -1,259 +1,237 @@
-# VSCode 远程开发与服务器代理两套方案  
-**—— 给需要在远程服务器上用 AI 插件与外网的同学的一份可复用指南**
+# 远程开发网络与插件使用实战手册
 
-> 面向对象：本地 Windows/macOS 能挂 VPN，但远程服务器（AutoDL、实验室/云服务器等）出不了网。  
-> 目标：  
-> - **A：只改 VSCode（扩展在本机 UI 运行）** → 无论远程能否出网，ChatGPT/Codex/Gemini/Claude Code 等扩展都能用。  
-> - **B：让远程服务器自己出网并自启（clash-for-AutoDL）** → 服务器可 `pip/apt/git/curl` 正常访问外网。  
-
-> 文中所有 `http://127.0.0.1:7890`、端口 `7890` 均为**示例**。  
-> 如果你的本机代理/服务器代理端口不是 7890，请按实际端口修改（如 1080、8889、2080…）。  
-> 协议也可能是 `socks5://`，请按你的代理软件实际配置调整。
+> 目标：A 仅靠本机代理，让 VSCode 远程也能用各类 AI 插件；B 让远程服务器自己出网并可按需/自启代理（以 mihomo/clash-for-AutoDL 为例）。
+> 
+> 
+> 读者画像：本地 Windows/macOS 已有“梯子”，远程（AutoDL 容器/云 GPU/服务器）默认直连。
+> 
+> 约定：文中端口以 `7890`（HTTP）为例，请替换为你的实际端口。
+> 
 
 ---
 
 ## 目录
-- [A. 只改 VSCode（本机有 VPN 即可）](#a-只改-vscode本机有-vpn-即可)
-  - [A-1 打开“用户设置（JSON）”](#a-1-打开用户设置json)
-  - [A-2 一次性粘贴以下配置（可整段）](#a-2-一次性粘贴以下配置可整段)
-  - [A-3 验证扩展是否在 UI 本地运行](#a-3-验证扩展是否在-ui-本地运行)
-- [B. 让远程服务器自己出网并自启（clash-for-AutoDL）](#b-让远程服务器自己出网并自启clash-for-autodl)
-  - [B-1 备份原配置](#b-1-备份原配置)
-  - [B-2 获取并启动 `clash-for-AutoDL`](#b-2-获取并启动-clash-for-autodl)
-  - [B-3 向 `~/.bashrc` 追加“按需启用代理”的函数（整段粘贴）](#b-3-向-bashrc-追加按需启用代理的函数整段粘贴)
-  - [B-4 无 systemd 场景：登录时自动启动 clash](#b-4-无-systemd-场景登录时自动启动-clash)
-  - [B-5 可选：再加一条开机自启（cron）](#b-5-可选再加一条开机自启cron)
-  - [B-6 验证外网与环境变量](#b-6-验证外网与环境变量)
-- [只做 A / 只做 B / 两者都做？](#只做-a--只做-b--两者都做)
-- [常见坑位与排查](#常见坑位与排查)
-- [FAQ](#faq)
-- [致谢与许可](#致谢与许可)
+
+- 两种诉求（可解耦）
+- Part A：VSCode 仅靠本机代理也能用 AI 插件
+    - A1. 最小必要设置（settings.json）
+    - A2.（仅 Codex）同步 `.codex` 以便远程调试时“读取远程文件”
+- Part B：远程服务器按需走代理
+    - B0. 仓库与基础安装
+    - B1. 使用去注入版 `start.sh`（备份→替换）
+    - B2. 新建自启脚本 `/etc/profile.d/99-clash-autostart.sh`
+    - B3. 新建代理函数库 `~/.proxy_funcs.sh`
+    - B4. 修改 `~/.bashrc`
+    - B5. 开机后验证步骤（Ubuntu）
+- 常见问题与排查
 
 ---
 
-## A. 只改 VSCode（本机有 VPN 即可）
-> 目的：让 **AI 插件在本机 UI 侧运行**，登录与联网全部走你的**本机代理**。  
-> 结论：即使远程服务器不能出网，VSCode 内的 ChatGPT/Codex/Gemini/Claude Code 等扩展仍可正常使用。
+## 两种诉求（可解耦）
 
-### A-1 打开“用户设置（JSON）”
-- 快捷键：`Ctrl + Shift + P`  
-- 输入：`Open User Settings (JSON)` 或 `Preferences: Open User Settings (JSON)`  
-- 回车打开 `settings.json`。
+1. **只想在 VSCode 远程时照常用 AI 插件**：扩展运行在**本机 UI 侧**，走本机代理，远程是否能出国无关 → 做 **Part A** 即可。
+2. **远程也要能 `pip/git/wget` 出网**：在远程安装 mihomo/Clash，并通过环境变量为命令行/服务提供代理 → 做 **Part B**。
 
-### A-2 一次性粘贴以下配置（可整段）
-> **端口请改成你的本机代理端口**；如是 `socks5://` 也请改协议。  
-> 如超出长度限制，请分两次粘贴到同一个 JSON 文件中。
+> 多数人 A 就够用；当你要在远程拉包/访问外网时，再补做 B。
+> 
+
+---
+
+## Part A：VSCode 仅靠本机代理也能用 AI 插件
+
+**核心**：让联网扩展跑在 **UI（本机）** 侧；必要时让 VSCode 自身走本机 HTTP 代理。
+
+### A1. 最小必要设置（settings.json）
+
+> 仅保留与“插件可用”强相关的键；端口以 7890 为例，扩展 ID 请按你实际安装填写。
+> 
 
 ```json
 {
-  // —— 让 VSCode 自身与终端走你的“本机代理”（示例端口 7890，改成你的端口/协议）——
   "http.proxy": "http://127.0.0.1:7890",
   "http.proxyStrictSSL": false,
-
-  // —— 让“远程终端面板”（在 VSCode 窗口内的那个终端）继承本机代理 —— 
-  "terminal.integrated.env.linux": {
-    "http_proxy": "http://127.0.0.1:7890",
-    "https_proxy": "http://127.0.0.1:7890",
-    "HTTP_PROXY": "http://127.0.0.1:7890",
-    "HTTPS_PROXY": "http://127.0.0.1:7890",
-    "no_proxy": "localhost,127.0.0.1,::1"
-  },
-
-  // —— 关键：强制特定扩展在“本机 UI”运行（而不是远端服务器）——
-  // 下面只演示 ChatGPT 扩展（openai.chatgpt）。其他扩展（Gemini、Codex、Claude Code 等）同理，按扩展 ID 添加为 ["ui"] 即可。
   "remote.extensionKind": {
-    "openai.chatgpt": ["ui"]
-    // "扩展ID": ["ui"]
+    "openai.chatgpt": ["ui"],
+    "google.geminicodeassist": ["ui"],
+    "Anthropic.claude-code-assist": ["ui"]
   }
 }
 ```
 
-> 🔍 扩展 ID 范例：  
-> - OpenAI ChatGPT 扩展：`openai.chatgpt`  
-> - 其他厂商扩展可在其扩展详情页右侧找到 **Identifier**，按 `"扩展ID": ["ui"]` 添加。
+**如何找到扩展的 ID（Identifier）**：在 VSCode 里打开“扩展”侧栏 → 搜索并点开目标扩展 → **详情（Details）** 页 → 找到 **Identifier** 字段（形如 `publisher.name`），点击旁边的复制按钮或选中复制该值，填入上面的键名处。
 
-### A-3 验证扩展是否在 UI 本地运行
-- `Ctrl + Shift + P` → `Developer: Reload Window`  
-- `Ctrl + Shift + P` → `Developer: Show Running Extensions`  
-- 找到目标扩展（如 `openai.chatgpt`），确认 `Runs: UI` / `Local`。  
-  若仍显示 `SSH: Remote`，请重开窗口或再次检查 `remote.extensionKind` 是否填写正确。
+### A2.（仅 Codex）同步 `.codex` 以便远程调试时“读取远程文件”
 
-> ✅ 做完 A：VSCode 里的 AI 扩展“与远端出网解耦”。  
-> ⚠️ 服务器上的 `pip/apt/git` 是否能出网，取决于 **B**。
+- 目的：让 **Codex** 在 VSCode 远程调试时更好地**索引与解析远程工程文件**，方便断点/跳转与联动调试。
+- 做法（仅当你使用 **Codex** 时执行）：将本地 `.codex`（或扩展设置指向的目录）同步到远程主目录：
+    
+    ```bash
+    scp -r ~/.codex user@server:~/.codex
+    # Windows 可用 WinSCP / Termius / MobaXterm 图形化上传
+    ```
+    
+- 其他 AI 插件通常**不需要**这一步。
 
 ---
 
-## B. 让远程服务器自己出网并自启（clash-for-AutoDL）
-> 目的：使服务器本身具备访问外网的能力（`pip/apt/git/curl`），并在登录/开机后**自动**启动代理与注入环境变量。  
-> 项目来源：[`VocabVictor/clash-for-AutoDL`](https://github.com/VocabVictor/clash-for-AutoDL)
+## Part B：让远程服务器按需走代理
 
-> **再次强调端口**：以下出现的 `7890` 都是示例。请与你的 `clash` 配置 `mixed-port` / `port` 保持一致。
+**目标**：登录后自动拉起 mihomo；是否启用代理由 `proxy_on / proxy_off` 控制；也可用 `autoproxy_maybe` 跟随端口自动开关环境变量。
 
-### B-1 备份原配置
+### B0. 仓库与基础安装
+
+按照官方仓库完成基础安装与订阅配置：
+
+- 仓库链接：`https://github.com/VocabVictor/clash-for-AutoDL`
+
+> 注：仓库本身的问题以其 README 为准；本文只在后续给出 start.sh 的替换方案。
+> 
+
+### B1. 使用去注入版 `start.sh`（备份→替换）
+
+- 仓库中提供了一份“去注入版” `start.sh`（已移除向 `~/.bashrc` 注入的逻辑）。
+- 操作：先备份原 `start.sh`，再将该文件替换为仓库提供的版本，并确保具有可执行权限。
+
+### B2. 新建自启脚本 `/etc/profile.d/99-clash-autostart.sh`
+
+一键粘贴下面的命令设置登录时自动拉起 clash：
+
 ```bash
-cp -f ~/.bashrc ~/.bashrc.bak.$(date +%s) 2>/dev/null || true
-cp -f ~/.bash_profile ~/.bash_profile.bak.$(date +%s) 2>/dev/null || true
+sudo bash -lc 'cat > /etc/profile.d/99-clash-autostart.sh <<"EOF"
+#!/bin/sh
+# 在你每次登录时检查 mihomo 是否已运行，未运行则启动。不会重复起。
+if ! pgrep -f "mihomo-linux" >/dev/null 2>&1; then
+  (
+    cd /root/clash-for-AutoDL || exit 0
+    export SKIP_BASHRC_INJECT=1
+    /bin/bash -lc '''source ./stop.sh >/dev/null 2>&1 || true; printf "n
+" | source ./start.sh''' >> /root/clash-for-AutoDL/boot.log 2>&1
+  ) &
+fi
+EOF
+chmod +x /etc/profile.d/99-clash-autostart.sh'
 ```
 
-### B-2 获取并启动 `clash-for-AutoDL`
-```bash
-cd ~
-git clone https://github.com/VocabVictor/clash-for-AutoDL.git || true
-cd ~/clash-for-AutoDL
-# 第一次运行会引导下载/检查配置
-source ./start.sh
-```
+### B3. 新建代理函数库 `~/.proxy_funcs.sh`
 
-验证端口是否监听（示例监听 `7890`/`5334`）：
-```bash
-lsof -i -P -n | grep LISTEN | grep -E ':7890|:5334' || echo "no clash ports"
-```
-
-### B-3 向 `~/.bashrc` 追加“按需启用代理”的函数（整段粘贴）
-> **一整段粘到 `~/.bashrc` 最末尾**；若端口不是 `7890`，请修改注释行后的默认值。  
+一键粘贴下面的命令设置手动/自动代理开关函数：
 
 ```bash
-cat >> ~/.bashrc <<'EOF'
-# ---- Proxy helpers (CLEAN) ----
+cat > ~/.proxy_funcs.sh <<'EOF'
+__PROXY_PORT="${__PROXY_PORT:-7890}"
+__PROXY_HOST="${__PROXY_HOST:-127.0.0.1}"
+
 proxy_on() {
-  local host="127.0.0.1"
-  local cfg="$HOME/clash-for-AutoDL/conf/config.yaml"
-  local port=""
-
-  # 从 clash 配置自动解析端口：优先 mixed-port, 其次 port
-  if [ -f "$cfg" ]; then
-    port=$(awk -F': *' '/^mixed-port:/{print $2; f=1} END{if(!f)exit 0}' "$cfg" 2>/dev/null)
-    [ -z "$port" ] && port=$(awk -F': *' '/^port:/{print $2; f=1} END{if(!f)exit 0}' "$cfg" 2>/dev/null)
-  fi
-  [ -z "$port" ] && port=7890   # ← 示例端口；改成你实际的代理端口
-
-  export http_proxy="http://$host:$port"
+  local is_quiet="${1:-false}"
+  export http_proxy="http://${__PROXY_HOST}:${__PROXY_PORT}"
   export https_proxy="$http_proxy"
-  export all_proxy="$http_proxy"
+  export no_proxy="127.0.0.1,localhost"
   export HTTP_PROXY="$http_proxy"
-  export HTTPS_PROXY="$http_proxy"
-  export ALL_PROXY="$all_proxy"
-  export no_proxy="127.0.0.1,localhost,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+  export HTTPS_PROXY="$https_proxy"
   export NO_PROXY="$no_proxy"
-  echo "Proxy ON -> $http_proxy"
+  [ "$is_quiet" != "true" ] && echo -e "[0;32m[√] 代理已开启 -> $http_proxy[0m"
 }
 
 proxy_off() {
-  unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY no_proxy NO_PROXY proxy PROXY
-  echo "Proxy OFF"
+  local is_quiet="${1:-false}"
+  unset http_proxy https_proxy no_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY
+  [ "$is_quiet" != "true" ] && echo -e "[0;31m[×] 代理已关闭[0m"
 }
 
-# 端口监听检查：优先用 ss，没有就用 lsof
-is_port_listening_7890() {
+# 只要端口在监听就自动开代理，否则自动关
+autoproxy_maybe() {
+  # 优先 ss
   if command -v ss >/dev/null 2>&1; then
-    ss -ltn 2>/dev/null | grep -q ':7890' && return 0
+    if ss -lnt 2>/dev/null | grep -q ":${__PROXY_PORT} "; then
+      proxy_on true; return
+    fi
   fi
-  lsof -iTCP:7890 -sTCP:LISTEN >/dev/null 2>&1 && return 0
-  return 1
+  # 回退 lsof
+  if command -v lsof >/dev/null 2>&1; then
+    if lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null | grep -q ":${__PROXY_PORT}"; then
+      proxy_on true; return
+    fi
+  fi
+  # 回退 netstat
+  if command -v netstat >/dev/null 2>&1; then
+    if netstat -lntp 2>/dev/null | grep -q ":${__PROXY_PORT} "; then
+      proxy_on true; return
+    fi
+  fi
+  proxy_off true
 }
-
-# 先清掉可能遗留的坏变量（如 http://:7890），再按需启用
-proxy_off 2>/dev/null || true
-if is_port_listening_7890; then
-  proxy_on
-fi
-# ---- END ----
 EOF
 ```
 
-> 说明：这段逻辑保证了**clash 未监听时不注入代理变量**，避免产生 `http://:7890` 这样的“坏变量”。
+### B4. 修改 `~/.bashrc`
 
-### B-4 无 systemd 场景：登录时自动启动 clash
-> 许多容器/镜像没有 `systemd`。用 `.bash_profile` 在**每次登录**时后台拉起 clash。
+一键粘贴下面的命令备份原文件并在末尾追加修改：
 
 ```bash
-cat > ~/.bash_profile <<'EOF'
-# 确保加载 .bashrc（含 proxy_on/off 与自动注入逻辑）
-if [ -f ~/.bashrc ]; then source ~/.bashrc; fi
+# 备份（可选）
+cp -a ~/.bashrc ~/.bashrc.bak.$(date +%F-%H%M%S) 2>/dev/null || true
 
-# 若 clash/mihomo 未在运行则启动（后台）
-if ! pgrep -f 'mihomo|clash' >/dev/null 2>&1; then
-  ( cd ~/clash-for-AutoDL && nohup bash -lc "source ./start.sh" >> ~/clash-for-AutoDL/boot.log 2>&1 & )
-fi
+# 仅当未添加过时，在 ~/.bashrc 末尾追加三行
+if ! grep -Fq '[ -f ~/.proxy_funcs.sh ] && . ~/.proxy_funcs.sh' ~/.bashrc; then
+  cat >> ~/.bashrc <<'EOF'
+
+# --- proxy auto begin ---
+[ -f ~/.proxy_funcs.sh ] && . ~/.proxy_funcs.sh
+proxy_off true 2>/dev/null || true
+autoproxy_maybe 2>/dev/null || true
+# --- proxy auto end ---
 EOF
+fi
+
+# 让改动立刻生效
+source ~/.bashrc
 ```
 
-> 提示：若你的环境支持 `systemd`，也可以写成 `systemd` 服务，但在常见容器里通常不可用。
+### B5. 重启一次自启效果检查步骤（Ubuntu）
 
-### B-5 可选：再加一条开机自启（cron）
-> 这步**可选**。个别环境下登录前就要自动启动 clash，可增加 `@reboot`。
+先安装依赖（Ubuntu/Debian）：
 
 ```bash
-crontab -l 2>/dev/null | { cat; echo '@reboot /bin/bash -lc "cd ~/clash-for-AutoDL && source ./start.sh"'; } | crontab -
+sudo apt-get update
+sudo apt-get install -y iproute2 lsof net-tools curl
 ```
 
-### B-6 验证外网与环境变量
+然后按顺序执行自查：
+
 ```bash
-# 1) 端口监听
-lsof -i -P -n | grep LISTEN | grep -E ':7890|:5334' || echo "no clash ports"
+# 1) 进程与端口（mihomo 是否已在监听）
+pgrep -af 'mihomo|clash' || echo "未看到 mihomo 进程"
+ss -lnt | awk 'NR==1 || /:7890[[:space:]]/'
 
-# 2) 变量是否已注入（有值才对）
-echo "$http_proxy | $https_proxy | $all_proxy"
+# 2) 函数是否可用
+type proxy_on proxy_off autoproxy_maybe
 
-# 3) 外网连通性
-curl -I -m 10 https://www.google.com
+# 3) 切换变量并查看三元组
+proxy_off; echo "$http_proxy | $https_proxy | $NO_PROXY"
+proxy_on;  echo "$http_proxy | $https_proxy | $NO_PROXY"
+
+# 4) 外网连通性（示例）
+curl -I -m 8 https://www.google.com || true
 ```
 
-> 若遇到 `curl: (5) Unsupported proxy syntax in 'http://127.0.0.1:null'`，说明你的端口没有被正确解析：  
-> - 检查 `clash-for-AutoDL/conf/config.yaml` 中的 `mixed-port` / `port`；  
-> - 或手动把脚本中的默认 `port=7890` 改成你的实际端口。
+**期望**：
+
+- `ss` 显示 `LISTEN *:7890`；
+- `type` 显示三者为 `function`；
+- `proxy_on` 后三元组为 `http://127.0.0.1:7890 | http://127.0.0.1:7890 | 127.0.0.1,localhost`；
+- `curl` 返回 `HTTP/2 200`。
+
+### B6. 日常使用与小贴士
+
+- 开启代理：`proxy_on`（静默：`proxy_on true`）；关闭：`proxy_off`。
+- 自动跟随端口：`autoproxy_maybe`。
 
 ---
 
-## 只做 A / 只做 B / 两者都做？
-- **只做 A**：希望 VSCode 里 AI 扩展可用，**不关心**服务器自身是否能出网。  
-- **只做 B**：需要服务器本身能出网（下载依赖、训练时拉数据、`apt/pip/git` 等）。  
-- **两者都做**：插件稳定 + 服务器也能独立出网 → 最顺手的日常开发体验。距离Codex能直接远程调试代码只差最后一步，把本地~/.codex文件夹粘贴到远程服务器再重启vscode或重新连接ssh就可以实现真正的远程vibe coding啦！
+## 常见问题与排查
 
----
-
-## 常见坑位与排查
-1) **扩展仍跑在远端**  
-- 重载窗口；检查 `remote.extensionKind` 是否把扩展 ID 设为 `["ui"]`。  
-- `Developer: Show Running Extensions` 确认 `Runs: UI/Local`。
-
-2) **`http://:7890` 坏变量**  
-- 说明在 clash 未监听时就写入了代理变量。  
-- 使用本指南 B-3 的“**按需启用**”逻辑可彻底避免。
-
-3) **端口与协议不符**  
-- 你的代理可能是 `socks5://127.0.0.1:1080`；请全局替换并与实际软件一致。  
-- VSCode 的 `http.proxy` 支持 `http://` 与 `socks5://`。
-
-4) **容器没有 `systemd`**  
-- 正常，请用 `.bash_profile`（B-4）+（可选）`cron @reboot`（B-5）方式自启。
-
-5) **VSCode 远程终端连外网慢/不稳**  
-- 可以同时设置 VSCode 的 `terminal.integrated.env.linux` 与服务器 `.bashrc`，不冲突。  
-- 也可仅依赖服务器 `.bashrc` 注入，二选一或都设均可。
-
----
-
-## FAQ
-**Q1：扩展 ID 哪里看？**  
-A：在扩展详情页右侧找 **Identifier**，形如 `publisher.name`，例如 `openai.chatgpt`。
-
-**Q2：为什么一定要把扩展设为 UI 运行？**  
-A：这样扩展的登录与网络都走你**本机**；即使远端网络受限，扩展照样可用。
-
-**Q3：服务器代理端口不是 7890 怎么办？**  
-A：将文内所有 `7890` 替换为你的端口（含 `~/.bashrc` 中解析失败时的**默认值**）。
-
-**Q4：我只想让 `pip` 走代理，不想全局走？**  
-A：可以不调用 `proxy_on`，在用到时临时指定：  
-```bash
-https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 pip install xxx
-```
-
----
-
-## 致谢与许可
-- 服务器代理部分基于开源项目 **clash-for-AutoDL** 的实践与包装。  
-- 文档建议使用 **MIT License** 方便复用与二次修改。欢迎提交 Issue/PR 补充你所在学校/云厂商环境的差异与最佳实践。
-
-> Happy hacking & good luck with your experiments! 🚀
+1. **扩展仍跑在远端**：`remote.extensionKind` 的键名需要填扩展 **Identifier**（扩展详情页可复制）。
+2. **命令行能出网，但某些进程不走代理**：环境变量只影响其子进程；守护/容器需要在其启动环境单独传递代理变量。
+3. **历史脚本污染了 ****`~/.bashrc`**：本方案已禁用注入；若历史已污染，备份后用 B4 的“一键命令”覆盖写入。
+4. **证书/SSL 报错**：优先修 CA 或换源；不建议长期关闭 SSL 校验。
+5. **端口冲突或未监听**：确认 `conf/config.yaml` 的 `port`，或在控制面板切换/保存后重启；必要时改为其他空闲端口。
